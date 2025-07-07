@@ -17,12 +17,12 @@ def sma_crossover(df_stock:pd.DataFrame,
         slow_sma_window (Optional, int): Window for slow SMA. Defaults to `30`.
 
     Returns:
-        pd.DataFrame: 
+        pd.DataFrame: A dataframe containing trading signals and Long/Short orders.
     """
 
     df_signals = pd.DataFrame(index=df_stock.index)
 
-    for sma, sma_window in zip(["fast_sma", "slow_sma"],[fast_sma_window, slow_wma_window]):
+    for sma, sma_window in zip(["fast_sma", "slow_sma"],[fast_sma_window, slow_sma_window]):
         df_signals[sma] = (
             df_stock[col_price].rolling(window=sma_window,
                                         min_periods=1,
@@ -36,7 +36,7 @@ def sma_crossover(df_stock:pd.DataFrame,
     )
 
     df_signals["orders"] = (
-        df_signals["signam"].diff()
+        df_signals["signal"].diff()
     )
 
     df_signals.loc[df_signals["orders"] == 0, "orders"] = None
