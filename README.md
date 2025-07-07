@@ -1,2 +1,4 @@
-# quant_research_toolbox
-Python toolbox for Quantitative Research 
+# Quant Research Toolbox
+Python toolbox for Quantitative Research:
+- modules for alpha research and signal generation (momentum, mean-reversion)
+- modules for strategy evaluation
