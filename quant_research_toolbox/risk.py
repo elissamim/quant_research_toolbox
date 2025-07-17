@@ -1,32 +1,67 @@
 import pandas as pd
-from dataclasses import dataclass
+import numpy as np
+from scipy.stats import norm
+from dataclasses import dataclass, field
 
 @dataclass
 class ValueAtRisk:
 
-    df_returns: pd.Series
     confidence_level: float = .99
+    alpha : float = field(init=False)
 
-    def historical_var(self) -> float:
+    def __post_init__(self):
+        self.alpha = 1 - self.confidence_level
+
+    def historical_var(self,
+                      df_returns:pd.Series) -> float:
         """
         Return the potential loss for a given confidence interval, given
         the distribution of historical returns. It involves sorting the historical returns
         and finding the percentile that corresponds to the desired confidence level.
-        """
-        pass
 
-    def parametric_var(self) -> float:
+        Args:
+            df_returns (pd.Series): Returns series.
+
+        Returns:
+            float: Historical VaR.
+        """
+
+        return np.percentile(df_returns,
+                            100*self.alpha)
+        
+
+    def parametric_var(self,
+                      df_returns:pd.Series) -> float:
         """
         Return the potential loss for a given confidence interval, given
         that the distribution of the returns is assumed normal. Calculate VaR
         using the mean and standard deviation of the portfolio's returns.
-        """
-        pass
 
-    def monte_carlo_var(self) -> float:
+        Args:
+            df_returns (pd.Series): Returns series.
+
+        Returns:
+            float : Parametric VaR.
+        """
+
+        z_score = nrom.ppf(self.alpha)
+        mean_return = np.mean(df_returns)
+        std_dev_return = np.mean(df_returns)
+
+        return mean_return + z_score*std_dev_return
+
+    def monte_carlo_var(self,
+                       df_returns:pd.Series) -> float:
         """
         Return the potential loss for a given confidence interval, using
         random sampling to simulate a range of potential outcomes based on historical data.
+
+        Args:
+            df_returns (pd.Series): Returns series.
+
+        Returns:
+            float: Monte-Carlo VaR.
         """
-        pass
+
+        
     
