@@ -51,7 +51,10 @@ class ValueAtRisk:
         return mean_return + z_score*std_dev_return
 
     def monte_carlo_var(self,
-                       df_returns:pd.Series) -> float:
+                       df_returns:pd.Series,
+                       num_simulations:int=1000,
+                       simulation_horizon:int=252,
+                       intial_investment:float=1e6) -> float:
         """
         Return the potential loss for a given confidence interval, using
         random sampling to simulate a range of potential outcomes based on historical data.
@@ -63,5 +66,17 @@ class ValueAtRisk:
             float: Monte-Carlo VaR.
         """
 
+        simulated_returns = (
+            np.random.normal(
+                np.mean(df_returns),
+                np.std(df_returns),
+                (simulation_horizon, num_simulations)
+            )
+        )
+
+        portfolio_values = (
+            initial_investment *
+        )
+        
         
     
