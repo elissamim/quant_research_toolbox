@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 from dataclasses import dataclass, field
+from typing import Optional
 
 @dataclass
 class ValueAtRisk:
@@ -28,11 +29,14 @@ class ValueAtRisk:
             float: Historical VaR.
         """
 
-        return np.percentile(df_returns,
-                            100*self.alpha)
+        var = np.percentile(df_returns,
+                                100*self.alpha)
+        
+        return var
         
     def parametric_var(self,
-                      df_returns:pd.Series) -> float:
+                      df_returns:pd.Series,
+                      n_periods:Optional[float]=None) -> float:
         """
         Return the potential loss for a given confidence interval, given
         that the distribution of the returns is assumed normal. Calculate VaR
@@ -48,14 +52,18 @@ class ValueAtRisk:
         z_score = norm.ppf(self.alpha)
         mean_return = np.mean(df_returns)
         std_dev_return = np.std(df_returns)
+        var = mean_return + z_score*std_dev_return
 
-        return mean_return + z_score*std_dev_return
+        if n_periods is None:
+            return var
+
+        return np.sqrt(n_periods) * var
 
     def monte_carlo_var(self,
                        df_returns:pd.Series,
-                       num_simulations:int=1000,
-                       simulation_horizon:int=252,
-                       initial_investment:float=1e6) -> float:
+                       num_simulations:Optional[int]=1000,
+                       simulation_horizon:Optional[int]=252,
+                       initial_investment:Optional[float]=1e6) -> float:
         """
         Return the potential loss for a given confidence interval, using
         random sampling to simulate a range of potential outcomes based on historical data.
@@ -84,8 +92,7 @@ class ValueAtRisk:
             portfolio_values[-1]/portfolio_values[0]-1
         )
 
-        return np.percentile(portfolio_returns,
+        var = np.percentile(portfolio_returns,
                             100*self.alpha)
-        
-        
-    
+
+        return var
