@@ -46,7 +46,7 @@ class ValueAtRisk:
 
         z_score = nrom.ppf(self.alpha)
         mean_return = np.mean(df_returns)
-        std_dev_return = np.mean(df_returns)
+        std_dev_return = np.std(df_returns)
 
         return mean_return + z_score*std_dev_return
 
