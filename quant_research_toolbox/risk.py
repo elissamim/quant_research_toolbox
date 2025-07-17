@@ -10,6 +10,8 @@ class ValueAtRisk:
     alpha : float = field(init=False)
 
     def __post_init__(self):
+        if not (0<=self.confidence_level<=1):
+            raise ValueError("`confidence_level` should be between 0 and 1")
         self.alpha = 1 - self.confidence_level
 
     def historical_var(self,
@@ -29,7 +31,6 @@ class ValueAtRisk:
         return np.percentile(df_returns,
                             100*self.alpha)
         
-
     def parametric_var(self,
                       df_returns:pd.Series) -> float:
         """
@@ -44,7 +45,7 @@ class ValueAtRisk:
             float : Parametric VaR.
         """
 
-        z_score = nrom.ppf(self.alpha)
+        z_score = norm.ppf(self.alpha)
         mean_return = np.mean(df_returns)
         std_dev_return = np.std(df_returns)
 
@@ -54,7 +55,7 @@ class ValueAtRisk:
                        df_returns:pd.Series,
                        num_simulations:int=1000,
                        simulation_horizon:int=252,
-                       intial_investment:float=1e6) -> float:
+                       initial_investment:float=1e6) -> float:
         """
         Return the potential loss for a given confidence interval, using
         random sampling to simulate a range of potential outcomes based on historical data.
@@ -75,8 +76,16 @@ class ValueAtRisk:
         )
 
         portfolio_values = (
-            initial_investment *
+            initial_investment*np.exp(np.cumsum(simulated_returns,
+                                               axis=0))
         )
+
+        portfolio_returns = (
+            portfolio_values[-1]/portfolio_values[0]-1
+        )
+
+        return np.percentile(portfolio_returns,
+                            100*self.alpha)
         
         
     
