@@ -2,10 +2,26 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Tuple
 
 @dataclass
 class ValueAtRisk:
+    """
+    A class for computing VaR and CVaR for a series of returns.
+
+    Args:
+        confidence_level (float): The confidence level of the VaR.
+
+    Attributes:
+        alpha (float): The probability that losses are higher than VaR.
+
+    Examples:
+        >>> from quant_research_toolbox.risk import ValueAtRisk
+        >>> data = pd.Series([100, -100, 10, -10, -20, -12, -10, -100, -1000, 5])
+        >>> var = ValueAtRisk(.99)
+        >>> var.historical_var(data)
+        -919
+    """
 
     confidence_level: float = .99
     alpha : float = field(init=False)
@@ -16,69 +32,68 @@ class ValueAtRisk:
         self.alpha = 1 - self.confidence_level
 
     def historical_var(self,
-                      df_returns:pd.Series) -> float:
+                      returns:pd.Series) -> Tuple[float, float]:
         """
         Return the potential loss for a given confidence interval, given
         the distribution of historical returns. It involves sorting the historical returns
         and finding the percentile that corresponds to the desired confidence level.
 
         Args:
-            df_returns (pd.Series): Returns series.
+            returns (pd.Series): Returns series.
 
         Returns:
-            float: Historical VaR.
+            float: Historical VaR and Historical CVaR.
         """
 
-        var = np.percentile(df_returns,
-                                100*self.alpha)
+        var = np.percentile(returns,
+                            100*self.alpha)
+
+        cvar = returns[returns <= var].mean()
         
-        return var
+        return float(var), float(cvar)
         
     def parametric_var(self,
-                      df_returns:pd.Series,
-                      n_periods:Optional[float]=None) -> float:
+                      returns:pd.Series) -> Tuple[float, float]:
         """
         Return the potential loss for a given confidence interval, given
         that the distribution of the returns is assumed normal. Calculate VaR
         using the mean and standard deviation of the portfolio's returns.
 
         Args:
-            df_returns (pd.Series): Returns series.
+            returns (pd.Series): Returns series.
 
         Returns:
-            float : Parametric VaR.
+            float : Parametric VaR and Parametric CVaR.
         """
 
         z_score = norm.ppf(self.alpha)
-        mean_return = np.mean(df_returns)
-        std_dev_return = np.std(df_returns)
+        mean_return = np.mean(returns)
+        std_dev_return = np.std(returns)
         var = mean_return + z_score*std_dev_return
+        cvar = mean_return + std_dev_return*norm.pdf(z_score)/self.alpha
 
-        if n_periods is None:
-            return var
-
-        return np.sqrt(n_periods) * var
+        return float(var), float(cvar)
 
     def monte_carlo_var(self,
-                       df_returns:pd.Series,
+                       returns:pd.Series,
                        num_simulations:Optional[int]=1000,
                        simulation_horizon:Optional[int]=252,
-                       initial_investment:Optional[float]=1e6) -> float:
+                       initial_investment:Optional[float]=1e6) -> Tuple[float, float]:
         """
         Return the potential loss for a given confidence interval, using
         random sampling to simulate a range of potential outcomes based on historical data.
 
         Args:
-            df_returns (pd.Series): Returns series.
+            returns (pd.Series): Returns series.
 
         Returns:
-            float: Monte-Carlo VaR.
+            float: Monte-Carlo VaR and Monte-Carlo CVaR.
         """
 
         simulated_returns = (
             np.random.normal(
-                np.mean(df_returns),
-                np.std(df_returns),
+                np.mean(returns),
+                np.std(returns),
                 (simulation_horizon, num_simulations)
             )
         )
@@ -95,4 +110,49 @@ class ValueAtRisk:
         var = np.percentile(portfolio_returns,
                             100*self.alpha)
 
-        return var
+        cvar = portfolio_returns[portfolio_returns <= var].mean()
+
+        return var, cvar
+
+class Drawdown:
+    """
+    A class for computing Daily Drawdown and Maximum Drawdown of a strategy,
+    given its cumulative returns.
+
+    Examples:
+        >>> from quant_research_toolbox.risk import Drawdown
+        >>> data = pd.Series([100, 110, 120, 98, 97, 99, 102])
+        >>> dd = Drawdown()
+        >>> dd.max_drawdown(data)
+        -0.192
+    """
+
+    @staticmethod
+    def daily_drawdown(cumulative_returns:pd.Series)->pd.Series:
+        """
+        Return the daily drawdown for a series of cumulative returns.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+
+        Returns:
+            pd.Series: Series of daily drawdown.
+        """
+    
+        running_max = cumulative_returns.cummax()
+        return cumulative_returns/running_max -1
+         
+    @staticmethod
+    def max_drawdown(cumulative_returns:pd.Series)->float:
+        """
+        Return the max drawdown of a series of cumulative returns.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+
+        Returns:
+            float: Maximum Drawdown of the strategy. 
+        """
+    
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        return float(daily_drawdowns.min())
