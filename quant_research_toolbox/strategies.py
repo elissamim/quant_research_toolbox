@@ -70,5 +70,10 @@ class Momentum:
         signal = 0
         count_consecutive_days = 0
 
+        for in in range(1, len)
+
         
         
+class MeanReversion:
+
+    pass
