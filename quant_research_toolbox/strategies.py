@@ -70,7 +70,23 @@ class Momentum:
         signal = 0
         count_consecutive_days = 0
 
-        for in in range(1, len)
+        for i in range(1, len(df_stock.index)):
+            if df_price_diff.iloc[i] > 0:
+                count_consecutive_days += 1 if count_consecutive_days >= 0 else 1
+                if count_consecutive_days == nb_consecutive_days and signal != 1:
+                    df_signals.loc[df_signals.index[i],"orders"] = 1
+                    signal = 1
+            elif df_price_diff.iloc[i] < 0:
+                count_consecutive_days -= 1 if count_consecutive_days <= 0 else -1
+                if count_consecutive_days == -nb_consecutive_days and signal !=-1:
+                    df_signals.loc[df_signals.index[i], "orders"] = -1
+                    signal = -1
+            else:
+                count_consecutive_days = 0
+                signal = 0
+
+        return df_signals
+            
 
         
         
