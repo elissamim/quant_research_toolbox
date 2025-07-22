@@ -117,7 +117,7 @@ class MeanReversion:
     def sma_mean_reversion(
         df_stock:pd.DataFrame,
         col_price: Optional[str]="close",
-        entry_treshold:Optional[float]=1.0,
+        entry_threshold:Optional[float]=1.0,
         exit_threshold:Optional[float]=0.5,
         window:Optional[int]=20
     )->pd.DataFrame:
@@ -169,5 +169,3 @@ class MeanReversion:
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
         
         return df_signals
-        
-        
