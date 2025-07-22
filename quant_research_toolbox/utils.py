@@ -15,4 +15,18 @@ def load_ticker_data(ticker_name: str, start_date: str, end_date: str) -> pd.Dat
 
     return df_ticker
 
-def 
+def compute_returns(df_signals:pd.DataFrame,
+                   col_prices:str,
+                   col_orders:str) -> pd.DataFrame:
+    """
+
+    Args:
+
+    Returns:
+        
+    """
+
+    df_returns = pd.DataFrame(df_signals.index)
+
+    buy_indices = df_signals[df_signals[col_orders]==1].index
+    sell_indices = df_signals[df_signals[col_orders]==-1].index
