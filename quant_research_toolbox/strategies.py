@@ -1,5 +1,5 @@
 """
-Functions and classes for tradinf strategies including: momentum, mean-reversion, pair trading and oscillators.
+Functions and classes for trading strategies including: momentum, mean-reversion, pair trading and oscillators.
 """
 
 import pandas as pd
@@ -7,7 +7,8 @@ import numpy as np
 from typing import Optional
 
 class Momentum:
-    """ 
+    """
+    Class for Momentum strategies.
     """
 
     @staticmethod
@@ -67,7 +68,7 @@ class Momentum:
             nb_consecutive_days (Optional, int): Threshold of days for momentum. Defaults to `2`.
 
         Returns:
-            pd.DataFrame: 
+            pd.DataFrame: A dataframe containing trading signals and Long/Short orders.
         """
 
         df_signals = pd.DataFrame(index=df_stock.index)
@@ -109,6 +110,7 @@ class Momentum:
             
 class MeanReversion:
     """
+    Class for Mean Reversion strategies.
     """
 
     @staticmethod
@@ -116,11 +118,56 @@ class MeanReversion:
         df_stock:pd.DataFrame,
         col_price: Optional[str]="close",
         entry_treshold:Optional[float]=1.0,
-        exit_threshold:Optional[float]=0.5
+        exit_threshold:Optional[float]=0.5,
+        window:Optional[int]=20
     )->pd.DataFrame:
         """
+        Generate signals for SMA mean reversion: buy (1) when the price is under 
+        the SMA minus a given number of standard deviations, sell (-1) when the price is over
+        the SMA plus a given number of standard deviations.
+
+        Args:
+            df_stock (pd.DataFrame): Table containing stock prices indexed by time.
+            col_price (Optional, str): Name of the column containing prices. Defaults to `close`.
+            entry_threshold (Optional, float): Number of standard deviations above the SMA. Defaults to `1`.
+            exit_threshold (Optional, float): Number of standard deviations under the SMA. Defaults to `0.5`.
+            window (Optional, int): Window for the SMA.
+
+        Returns:
+            pd.DataFrame: A dataframe containing trading signals and Long/Short orders.
         """
 
         df_signals = pd.DataFrame(index=df_stock.index)
+
+        df_signals["sma"] = df_stock[col_price].rolling(
+            window=window,
+            center=False,
+            min_periods=1
+        ).mean()
+        
+        df_signals["std"] = df_stock[col_price].rolling(
+            window=window,
+            center=False,
+            min_periods=1
+        ).std()
+
+        conditions = [
+            df_stock[col_price] > df_signals["sma"] + entry_threshold*df_signals["std"],
+            df_stock[col_price] < df_signals["sma"] - exit_threshold*df_signals["std"]
+        ]
+
+        choices = [
+            -1,1
+        ]
+
+        df_signals["signal"] = np.select(
+            conditions,
+            choices,
+            default=0
+        )
+
+        df_signals["orders"] = df_signals["signal"].diff().fillna(0)
+        
+        return df_signals
         
         
