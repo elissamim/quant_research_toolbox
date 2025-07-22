@@ -14,3 +14,5 @@ def load_ticker_data(ticker_name: str, start_date: str, end_date: str) -> pd.Dat
     df_ticker["median_price"] = df_ticker[["high", "low"]].mean(1)
 
     return df_ticker
+
+def 
