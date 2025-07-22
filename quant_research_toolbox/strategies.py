@@ -19,7 +19,7 @@ class Momentum:
     ) -> pd.DataFrame:
         """
         Generate signals and orders based on a SMA crossover strategy: buy signal (1) generated when fast SMA is higher
-        and sell signal (-1) when slow SMA is higher.
+        after cross over and sell signal (-1) when slow SMA is higher before cross over.
 
         Args:
             df_stock (pd.DataFrame): Time series of a stock (index is datetime).
@@ -46,9 +46,7 @@ class Momentum:
             df_signals["fast_sma"] > df_signals["slow_sma"], 1, 0
         )
 
-        df_signals["orders"] = df_signals["signal"].diff()
-
-        df_signals.loc[df_signals["orders"] == 0, "orders"] = None
+        df_signals["orders"] = df_signals["signal"].diff().fillna(0)
 
         return df_signals
 
@@ -59,37 +57,56 @@ class Momentum:
         nb_consecutive_days: Optional[int] = 2
     ) -> pd.DataFrame:
         """
+        Generate signals and orders following naive momentum strategy: 
+        buy signal (1) if the price keeps growing for at least a certain number of days,
+        and sell signal (-1) if the price keeps diminishing for the same number of days.
 
+        Args:
+            df_stock (pd.DataFrame): Time series of a stock (index is datetime).
+            col_price (Optional, str): Column name of price series. Defaults to `close`.
+            nb_consecutive_days (Optional, int): Threshold of days for momentum. Defaults to `2`.
+
+        Returns:
+            pd.DataFrame: 
         """
 
         df_signals = pd.DataFrame(index=df_stock.index)
+        df_signals["nb_consecutive_days"] = 0
+        df_signals["signal"] = 0
         df_signals["orders"] = 0
-
-        df_price_diff = df_stock[col_price].diff()
+        df_signals["price_diff"] = df_stock[col_price].diff()
 
         signal = 0
         count_consecutive_days = 0
 
-        for i in range(1, len(df_stock.index)):
-            if df_price_diff.iloc[i] > 0:
+        for i in range(1, len(df_signals.index)):
+            if df_signals.loc[df_signals.index[i], "price_diff"] > 0:
+                
                 count_consecutive_days += 1 if count_consecutive_days >= 0 else 1
+                df_signals.loc[df_signals.index[i], "nb_consecutive_days"] = count_consecutive_days
+                
                 if count_consecutive_days == nb_consecutive_days and signal != 1:
                     df_signals.loc[df_signals.index[i],"orders"] = 1
                     signal = 1
-            elif df_price_diff.iloc[i] < 0:
+                    df_signals.loc[df_signals.index[i], "signal"] = signal
+                    
+            elif df_signals.loc[df_signals.index[i], "price_diff"] < 0:
+                
                 count_consecutive_days -= 1 if count_consecutive_days <= 0 else -1
+                df_signals.loc[df_signals.index[i], "nb_consecutive_days"] = count_consecutive_days
+                
                 if count_consecutive_days == -nb_consecutive_days and signal !=-1:
                     df_signals.loc[df_signals.index[i], "orders"] = -1
                     signal = -1
+                    df_signals.loc[df_signals.index[i], "orders"] = signal
+                    
             else:
+                
                 count_consecutive_days = 0
                 signal = 0
 
         return df_signals
             
-
-        
-        
 class MeanReversion:
 
     pass
