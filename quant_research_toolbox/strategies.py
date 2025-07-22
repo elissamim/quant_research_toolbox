@@ -73,8 +73,8 @@ class Momentum:
         df_signals = pd.DataFrame(index=df_stock.index)
         df_signals["nb_consecutive_days"] = 0
         df_signals["signal"] = 0
-        df_signals["orders"] = 0
         df_signals["price_diff"] = df_stock[col_price].diff()
+        df_signals["orders"] = 0
 
         signal = 0
         count_consecutive_days = 0
@@ -108,5 +108,19 @@ class Momentum:
         return df_signals
             
 class MeanReversion:
+    """
+    """
 
-    pass
+    @staticmethod
+    def sma_mean_reversion(
+        df_stock:pd.DataFrame,
+        col_price: Optional[str]="close",
+        entry_treshold:Optional[float]=1.0,
+        exit_threshold:Optional[float]=0.5
+    )->pd.DataFrame:
+        """
+        """
+
+        df_signals = pd.DataFrame(index=df_stock.index)
+        
+        
