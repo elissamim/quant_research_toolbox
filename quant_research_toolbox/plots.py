@@ -2,9 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from typing import Optional
 
-def bollinger_bands(price: pd.Series, 
-                    window:Optional[int]=20,
-                    num_std:Optional[int]=2) -> None:
+
+def bollinger_bands(
+    price: pd.Series, window: Optional[int] = 20, num_std: Optional[int] = 2
+) -> None:
     """
     Return a plot of prices with corresponding Bollinger Bands.
 
@@ -17,30 +18,19 @@ def bollinger_bands(price: pd.Series,
         None.
     """
 
-    sma = price.rolling(
-        window=window,
-        center=False,
-        min_periods=1
-    ).mean()
+    sma = price.rolling(window=window, center=False, min_periods=1).mean()
 
-    std = price.rolling(
-        window=window,
-        center=False,
-        min_periods=1
-    ).std()
+    std = price.rolling(window=window, center=False, min_periods=1).std()
 
-    upper_bound = sma + num_std*std
-    lower_bound = sma - num_std*std
+    upper_bound = sma + num_std * std
+    lower_bound = sma - num_std * std
 
-    plt.figure(figsize=(12,6))
+    plt.figure(figsize=(12, 6))
     plt.plot(price, label="Price")
-    plt.plot(sma, label = f"SMA {window} periods")
-    plt.plot(upper_bound, linestyle="--", label = "Upper Bollinger Band")
+    plt.plot(sma, label=f"SMA {window} periods")
+    plt.plot(upper_bound, linestyle="--", label="Upper Bollinger Band")
     plt.plot(lower_bound, linestyle="--", label="Lower Bollinger Band")
-    plt.fill_between(price.index,
-                    lower_bound,
-                    upper_bound,
-                    alpha=.2)
+    plt.fill_between(price.index, lower_bound, upper_bound, alpha=0.2)
     plt.legend()
     plt.title("Bollinger bands")
     plt.show()

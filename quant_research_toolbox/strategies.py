@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from typing import Optional
 
+
 class Momentum:
     """
     Class for Momentum strategies.
@@ -55,10 +56,10 @@ class Momentum:
     def naive_momentum(
         df_stock: pd.DataFrame,
         col_price: Optional[str] = "close",
-        nb_consecutive_days: Optional[int] = 2
+        nb_consecutive_days: Optional[int] = 2,
     ) -> pd.DataFrame:
         """
-        Generate signals and orders following naive momentum strategy: 
+        Generate signals and orders following naive momentum strategy:
         buy signal (1) if the price keeps growing for at least a certain number of days,
         and sell signal (-1) if the price keeps diminishing for the same number of days.
 
@@ -82,32 +83,34 @@ class Momentum:
 
         for i in range(1, len(df_signals.index)):
             if df_signals.loc[df_signals.index[i], "price_diff"] > 0:
-                
                 count_consecutive_days += 1 if count_consecutive_days >= 0 else 1
-                df_signals.loc[df_signals.index[i], "nb_consecutive_days"] = count_consecutive_days
-                
+                df_signals.loc[df_signals.index[i], "nb_consecutive_days"] = (
+                    count_consecutive_days
+                )
+
                 if count_consecutive_days == nb_consecutive_days and signal != 1:
-                    df_signals.loc[df_signals.index[i],"orders"] = 1
+                    df_signals.loc[df_signals.index[i], "orders"] = 1
                     signal = 1
                     df_signals.loc[df_signals.index[i], "signal"] = signal
-                    
+
             elif df_signals.loc[df_signals.index[i], "price_diff"] < 0:
-                
                 count_consecutive_days -= 1 if count_consecutive_days <= 0 else -1
-                df_signals.loc[df_signals.index[i], "nb_consecutive_days"] = count_consecutive_days
-                
-                if count_consecutive_days == -nb_consecutive_days and signal !=-1:
+                df_signals.loc[df_signals.index[i], "nb_consecutive_days"] = (
+                    count_consecutive_days
+                )
+
+                if count_consecutive_days == -nb_consecutive_days and signal != -1:
                     df_signals.loc[df_signals.index[i], "orders"] = -1
                     signal = -1
                     df_signals.loc[df_signals.index[i], "orders"] = signal
-                    
+
             else:
-                
                 count_consecutive_days = 0
                 signal = 0
 
         return df_signals
-            
+
+
 class MeanReversion:
     """
     Class for Mean Reversion strategies.
@@ -115,14 +118,14 @@ class MeanReversion:
 
     @staticmethod
     def sma_mean_reversion(
-        df_stock:pd.DataFrame,
-        col_price: Optional[str]="close",
-        entry_threshold:Optional[float]=1.0,
-        exit_threshold:Optional[float]=0.5,
-        window:Optional[int]=20
-    )->pd.DataFrame:
+        df_stock: pd.DataFrame,
+        col_price: Optional[str] = "close",
+        entry_threshold: Optional[float] = 1.0,
+        exit_threshold: Optional[float] = 0.5,
+        window: Optional[int] = 20,
+    ) -> pd.DataFrame:
         """
-        Generate signals for SMA mean reversion: buy (1) when the price is under 
+        Generate signals for SMA mean reversion: buy (1) when the price is under
         the SMA minus a given number of standard deviations, sell (-1) when the price is over
         the SMA plus a given number of standard deviations.
 
@@ -139,33 +142,29 @@ class MeanReversion:
 
         df_signals = pd.DataFrame(index=df_stock.index)
 
-        df_signals["sma"] = df_stock[col_price].rolling(
-            window=window,
-            center=False,
-            min_periods=1
-        ).mean()
-        
-        df_signals["std"] = df_stock[col_price].rolling(
-            window=window,
-            center=False,
-            min_periods=1
-        ).std()
-
-        conditions = [
-            df_stock[col_price] > df_signals["sma"] + entry_threshold*df_signals["std"],
-            df_stock[col_price] < df_signals["sma"] - exit_threshold*df_signals["std"]
-        ]
-
-        choices = [
-            -1,1
-        ]
-
-        df_signals["signal"] = np.select(
-            conditions,
-            choices,
-            default=0
+        df_signals["sma"] = (
+            df_stock[col_price]
+            .rolling(window=window, center=False, min_periods=1)
+            .mean()
         )
 
+        df_signals["std"] = (
+            df_stock[col_price]
+            .rolling(window=window, center=False, min_periods=1)
+            .std()
+        )
+
+        conditions = [
+            df_stock[col_price]
+            > df_signals["sma"] + entry_threshold * df_signals["std"],
+            df_stock[col_price]
+            < df_signals["sma"] - exit_threshold * df_signals["std"],
+        ]
+
+        choices = [-1, 1]
+
+        df_signals["signal"] = np.select(conditions, choices, default=0)
+
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
-        
+
         return df_signals
