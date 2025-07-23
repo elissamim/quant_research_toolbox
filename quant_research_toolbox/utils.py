@@ -23,18 +23,44 @@ def load_ticker_data(ticker_name: str, start_date: str, end_date: str) -> pd.Dat
 
     return df_ticker
 
-def compute_returns(
+def compute_cumulative_returns(
     df_signals: pd.DataFrame, col_prices: str, col_orders: str
-) -> pd.DataFrame:
+) -> pd.Series:
     """
+    Compute cumulative returns from a strategy given prices and orders.
 
     Args:
+        df_signals (pd.DataFrame): DataFrame containing orders and prices.
+        col_prices (str): Name of the columns containing the prices.
+        col_orders (str): Name of the column containing the orders.
 
     Returns:
-
+        pd.DataFrame: DataFrame with a column containing the strategy cumulative returns.
     """
 
-    df_returns = pd.DataFrame(df_signals.index)
+    profit = pd.Series(0, df_signals.index)
 
-    buy_indices = df_signals[df_signals[col_orders] == 1].index
-    sell_indices = df_signals[df_signals[col_orders] == -1].index
+    buy_dates = df_signals[df_signals[col_orders] == 1].index
+    sell_dates = df_signals[df_signals[col_orders] == -1].index
+
+    for buy_date in buy_dates:
+
+        future_sells = sell_dates[sell_dates > buy_date]
+
+        if not future_sells.empty:
+
+            sell_date = future_sells[0]
+            profit[sell_date] = (
+                df_signals.loc[sell_date, col_prices] - 
+                df_signals.loc[buy_date, col_prices]
+            )
+
+        else:
+            # If not futur sell dates after buy date, close the position at the last date
+            profit.iloc[-1]=(
+                df_signals.loc[df_signals.index[-1], col_prices] - 
+                df_signals.loc[buy_date, col_prices]
+            )
+            break
+
+    return profit.cumsum()

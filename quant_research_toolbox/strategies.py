@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from typing import Optional
 
+from utils import compute_cumulative_returns
+
 
 class Momentum:
     """
@@ -33,7 +35,7 @@ class Momentum:
             pd.DataFrame: A dataframe containing trading signals and Long/Short orders.
         """
 
-        df_signals = pd.DataFrame(index=df_stock.index)
+        df_signals = df_stock.copy(deep=True)
 
         for sma, sma_window in zip(
             ["fast_sma", "slow_sma"], [fast_sma_window, slow_sma_window]
@@ -49,6 +51,12 @@ class Momentum:
         )
 
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
+
+        df_signals["cumulative_returns"] = (
+            compute_cumulative_returns(df_signals,
+                                      col_price,
+                                      "orders")
+        )
 
         return df_signals
 
@@ -72,7 +80,7 @@ class Momentum:
             pd.DataFrame: A dataframe containing trading signals and Long/Short orders.
         """
 
-        df_signals = pd.DataFrame(index=df_stock.index)
+        df_signals = df_stock.copy(deep=True)
         df_signals["nb_consecutive_days"] = 0
         df_signals["signal"] = 0
         df_signals["price_diff"] = df_stock[col_price].diff()
@@ -108,6 +116,12 @@ class Momentum:
                 count_consecutive_days = 0
                 signal = 0
 
+        df_signals["cumulative_returns"] = (
+            compute_cumulative_returns(df_signals,
+                                       col_price,
+                                       "orders")
+        )
+
         return df_signals
 
 
@@ -140,7 +154,7 @@ class MeanReversion:
             pd.DataFrame: A dataframe containing trading signals and Long/Short orders.
         """
 
-        df_signals = pd.DataFrame(index=df_stock.index)
+        df_signals = df_stock.copy(deep=True)
 
         df_signals["sma"] = (
             df_stock[col_price]
@@ -166,5 +180,11 @@ class MeanReversion:
         df_signals["signal"] = np.select(conditions, choices, default=0)
 
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
+
+        df_signals["cumulative_returns"] = (
+            compute_cumulative_returns(df_signals,
+                                       col_price,
+                                       "orders")
+        )
 
         return df_signals
