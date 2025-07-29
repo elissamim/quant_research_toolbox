@@ -38,7 +38,7 @@ def compute_cumulative_returns(
         pd.DataFrame: DataFrame with a column containing the strategy cumulative returns.
     """
 
-    profit = pd.Series(0, df_signals.index)
+    returns = pd.Series(0.0, index=df_signals.index)
 
     buy_dates = df_signals[df_signals[col_orders] == 1].index
     sell_dates = df_signals[df_signals[col_orders] == -1].index
@@ -50,17 +50,17 @@ def compute_cumulative_returns(
         if not future_sells.empty:
 
             sell_date = future_sells[0]
-            profit[sell_date] = (
-                df_signals.loc[sell_date, col_prices] - 
-                df_signals.loc[buy_date, col_prices]
+            returns[sell_date] = (
+                df_signals.loc[sell_date, col_prices] / 
+                df_signals.loc[buy_date, col_prices] - 1
             )
 
         else:
             # If not futur sell dates after buy date, close the position at the last date
-            profit.iloc[-1]=(
-                df_signals.loc[df_signals.index[-1], col_prices] - 
-                df_signals.loc[buy_date, col_prices]
+            returns.iloc[-1]=(
+                df_signals.loc[df_signals.index[-1], col_prices] / 
+                df_signals.loc[buy_date, col_prices] - 1
             )
             break
 
-    return profit.cumsum()
+    return (1+returns).cumprod()-1

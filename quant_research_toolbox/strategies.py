@@ -7,7 +7,7 @@ import numpy as np
 from typing import Optional
 
 from utils import compute_cumulative_returns
-
+                  
 
 class Momentum:
     """
@@ -52,10 +52,10 @@ class Momentum:
 
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
 
-        df_signals["cumulative_returns"] = (
+        df_signals[f"cumulative_returns"] = (
             compute_cumulative_returns(df_signals,
-                                      col_price,
-                                      "orders")
+                                        col_price,
+                                        "orders")
         )
 
         return df_signals
@@ -116,10 +116,10 @@ class Momentum:
                 count_consecutive_days = 0
                 signal = 0
 
-        df_signals["cumulative_returns"] = (
+        df_signals[f"cumulative_returns"] = (
             compute_cumulative_returns(df_signals,
-                                       col_price,
-                                       "orders")
+                                    col_price,
+                                    "orders")
         )
 
         return df_signals
@@ -181,10 +181,10 @@ class MeanReversion:
 
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
 
-        df_signals["cumulative_returns"] = (
+        df_signals[f"cumulative_returns"] = (
             compute_cumulative_returns(df_signals,
-                                       col_price,
-                                       "orders")
+                                        col_price,
+                                        "orders")
         )
 
         return df_signals

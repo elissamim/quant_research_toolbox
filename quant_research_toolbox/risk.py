@@ -117,7 +117,9 @@ class Drawdown:
         >>> data = pd.Series([.01, .05, -0.2, .01, .1, .2, -0.05])
         >>> dd = Drawdown()
         >>> dd.max_drawdown(data)
-        -0.192
+        -0.23809523809523814
+        >>> dd.average_drawdown(data)
+        -0.22321428571428575
     """
 
     @staticmethod
@@ -132,8 +134,8 @@ class Drawdown:
             pd.Series: Series of daily drawdown.
         """
 
-        highwatermark = 1+cumulative_returns.cummax()
         nav = 1+cumulative_returns
+        highwatermark = nav.cummax()
         return nav / highwatermark - 1
 
     @staticmethod
@@ -154,6 +156,14 @@ class Drawdown:
     @staticmethod
     def average_drawdown(cumulative_returns:pd.Series) -> float:
         """
+        Return the average drawdown of a series of cumulative returns,
+        by computing the average of the max drawdowns on each period of drawdown.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+
+        Returns:
+            float: Average Drawdown of the strategy.
         """
 
         daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
@@ -169,6 +179,23 @@ class Drawdown:
                 max_drawdowns.append(min(current_drawdowns))
                 current_drawdowns=[]
 
+        if current_drawdowns:
+            max_drawdowns.append(min(current_drawdowns))
+
         if max_drawdowns:
             return float(np.mean(max_drawdowns))
         return 0.0
+
+    @staticmethod
+    def drawdown_duration(cumulative_returns:pd.Series)->pd.Series:
+        """
+        """
+        pass
+
+    @staticmethod
+    def max_drawdown_duration(cumulative_returns:pd.Series)->float:
+        """
+        """
+        drawdown_durations = Drawdown.drawdown_duration(cumulative_returns)
+        return float(drawdown_durations.max())
+        
