@@ -133,7 +133,7 @@ class Drawdown:
         """
 
         running_max = cumulative_returns.cummax()
-        return cumulative_returns / running_max - 1
+        return (1+cumulative_returns) / (1+running_max) - 1
 
     @staticmethod
     def max_drawdown(cumulative_returns: pd.Series) -> float:
