@@ -132,7 +132,7 @@ class Drawdown:
             pd.Series: Series of daily drawdown.
         """
 
-        highwaterark = 1+cumulative_returns.cummax()
+        highwatermark = 1+cumulative_returns.cummax()
         nav = 1+cumulative_returns
         return nav / highwatermark - 1
 
@@ -150,3 +150,11 @@ class Drawdown:
 
         daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
         return float(daily_drawdowns.min())
+
+    @staticmethod
+    def average_drawdown(cumulative_returns:pd.Series) -> float:
+        """
+        """
+
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        pass
