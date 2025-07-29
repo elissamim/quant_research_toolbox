@@ -114,7 +114,7 @@ class Drawdown:
 
     Examples:
         >>> from quant_research_toolbox.risk import Drawdown
-        >>> data = pd.Series([100, 110, 120, 98, 97, 99, 102])
+        >>> data = pd.Series([.01, .05, -0.2, .01, .1, .2, -0.05])
         >>> dd = Drawdown()
         >>> dd.max_drawdown(data)
         -0.192
@@ -157,4 +157,18 @@ class Drawdown:
         """
 
         daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
-        pass
+        in_drawdowns = daily_drawdowns < 0
+
+        current_drawdowns = []
+        max_drawdowns = []
+
+        for drawdown, in_drawdown in zip(daily_drawdowns, in_drawdowns):
+            if in_drawdown:
+                current_drawdowns.append(drawdown)
+            elif current_drawdowns:
+                max_drawdowns.append(min(current_drawdowns))
+                current_drawdowns=[]
+
+        if max_drawdowns:
+            return float(np.mean(max_drawdowns))
+        return 0.0
