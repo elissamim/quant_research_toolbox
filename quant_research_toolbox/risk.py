@@ -132,8 +132,9 @@ class Drawdown:
             pd.Series: Series of daily drawdown.
         """
 
-        running_max = cumulative_returns.cummax()
-        return (1+cumulative_returns) / (1+running_max) - 1
+        highwaterark = 1+cumulative_returns.cummax()
+        nav = 1+cumulative_returns
+        return nav / highwatermark - 1
 
     @staticmethod
     def max_drawdown(cumulative_returns: pd.Series) -> float:
