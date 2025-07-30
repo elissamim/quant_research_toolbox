@@ -229,4 +229,3 @@ class Drawdown:
         if drawdown_durations:
             return float(DURATION_STATS[duration_stat](drawdown_durations))
         return 0.0
-        
