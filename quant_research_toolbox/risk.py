@@ -228,3 +228,32 @@ class Drawdown:
         if drawdown_durations:
             return float(DURATION_STATS[duration_stat](drawdown_durations))
         return 0.0
+
+    @staticmethod
+    def count_drawdown_periods(cumulative_returns:pd.Series) -> int:
+        """
+        Count the number of drawdown periods in cumulative returns series.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+
+        Returns:
+            int: Number of drawdown periods.
+        """
+
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        in_drawdowns = daily_drawdowns < 0
+
+        count_drawdowns = 0
+        previous_drawdown = False
+
+        for in_drawdown in in_drawdowns:
+            if in_drawdown:
+                if not previous_drawdown:
+                    count_drawdowns +=1
+                    previous_drawdown = True
+            elif previous_drawdown:
+                previous_drawdown = False
+
+
+        return count_drawdowns
