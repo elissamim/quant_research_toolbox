@@ -134,7 +134,7 @@ class Drawdown:
             pd.Series: Series of daily drawdown.
         """
 
-        nav = 1+cumulative_returns
+        nav = 1 + cumulative_returns
         highwatermark = nav.cummax()
         return nav / highwatermark - 1
 
@@ -154,7 +154,7 @@ class Drawdown:
         return float(daily_drawdowns.min())
 
     @staticmethod
-    def average_drawdown(cumulative_returns:pd.Series) -> float:
+    def average_drawdown(cumulative_returns: pd.Series) -> float:
         """
         Return the average drawdown of a series of cumulative returns,
         by computing the average of the max drawdowns on each period of drawdown.
@@ -177,7 +177,7 @@ class Drawdown:
                 current_drawdowns.append(drawdown)
             elif current_drawdowns:
                 max_drawdowns.append(min(current_drawdowns))
-                current_drawdowns=[]
+                current_drawdowns = []
 
         if current_drawdowns:
             max_drawdowns.append(min(current_drawdowns))
@@ -187,11 +187,12 @@ class Drawdown:
         return 0.0
 
     @staticmethod
-    def drawdown_duration(cumulative_returns:pd.Series,
-                          duration_stat:Optional[str]="max")->float:
+    def drawdown_duration(
+        cumulative_returns: pd.Series, duration_stat: Optional[str] = "max"
+    ) -> float:
         """
-        Return 
-            
+        Return
+
         Args:
             cumulative_returns (pd.Series): Series of cumulative returns.
             duration_stat (Optional[str]): Statistic to compute for drawdown duration.
@@ -201,15 +202,13 @@ class Drawdown:
             float: Given statistic of duration of drawdown periods.
         """
 
-        DURATION_STATS = {
-            "max":np.max,
-            "mean":np.mean,
-            "median":np.median
-        }
+        DURATION_STATS = {"max": np.max, "mean": np.mean, "median": np.median}
 
         if duration_stat not in DURATION_STATS:
-            raise ValueError(f"Invalid value for `duration_stat` : '{duration_stat}'. Must be one of {list(DURATION_STATS)}.")
-        
+            raise ValueError(
+                f"Invalid value for `duration_stat` : '{duration_stat}'. Must be one of {list(DURATION_STATS)}."
+            )
+
         daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
         in_drawdowns = daily_drawdowns < 0
 
