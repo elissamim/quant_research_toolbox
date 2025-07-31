@@ -7,3 +7,7 @@
 ## Downside risk metrics
 
 ## Tail risk metrics
+
+### Skewness
+
+### Kurtosis
