@@ -257,3 +257,64 @@ class Drawdown:
 
 
         return count_drawdowns
+
+    @staticmethod
+    def ulcer_index(cumulative_returns:pd.Series) -> float:
+        """
+        Return the Ulcer-Index of a series of cumulative returns.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+
+        Returns:
+            float: Ulcer-Index of the series.
+        """
+
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        is_negative = daily_drawdowns[daily_drawdowns < 0]
+
+        if is_negative.empty:
+            return 0.0
+
+        ui = float(np.sqrt((is_negative ** 2).mean()))
+
+        return ui
+
+    @staticmethod
+    def conditional_drawdown_at_risk(cumulative_returns:pd.Series,
+                                    confidence_level:Optional[float]=.99
+                                    ) -> float:
+        """
+        Compute the conditional drawdown at risk for a given confidence level.
+        It is the CVaR for the drawdown series.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+            confidence_level (Optional[float]): Confidence level of the CDaR.
+
+        Returns:
+            float: CDaR, i.e. the CVaR of the drawdown series.
+        """
+
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        daily_drawdowns = daily_drawdowns[daily_drawdowns < 0]
+
+        if daily_drawdowns.empty:
+            return 0.0
+
+        if (confidence_level > 1) or (confidence_level < 0):
+            raise ValueError(
+                f"Invalid value for the `confidence_level`:{confidence_level}. This variable must be between 0 and 1."
+            )
+        
+        value_at_risk = np.percentile(daily_drawdowns, 
+                                      100*(1-confidence_level))
+        conditional_value_at_risk = (
+            daily_drawdowns[daily_drawdowns <= value_at_risk].mean()
+        )
+
+        return float(conditional_value_at_risk)
+        
+        
+
+        
