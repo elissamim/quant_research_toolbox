@@ -258,6 +258,22 @@ class Drawdown:
 
         return count_drawdowns
 
+    # @staticmethod
+    # def time_under_water(cumulative_returns:pd.Series,
+    #                     duration_stat: Optional[str] = "max") -> int:
+    #     """
+    #     Return the time under water with a given statistic.
+    #     """
+
+    #     DURATION_STATS = {"max": np.max, "mean": np.mean, "median": np.median}
+
+    #     daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+    #     in_drawdowns = daily_drawdowns[daily_drawdowns < 0]
+
+        
+
+    #     pass
+
     @staticmethod
     def ulcer_index(cumulative_returns:pd.Series) -> float:
         """
