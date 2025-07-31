@@ -115,10 +115,9 @@ class Drawdown:
     Examples:
         >>> from quant_research_toolbox.risk import Drawdown
         >>> data = pd.Series([.01, .05, -0.2, .01, .1, .2, -0.05])
-        >>> dd = Drawdown()
-        >>> dd.max_drawdown(data)
+        >>> Drawdown.max_drawdown(data)
         -0.23809523809523814
-        >>> dd.average_drawdown(data)
+        >>> Drawdown.average_drawdown(data)
         -0.22321428571428575
     """
 
@@ -386,3 +385,62 @@ class Drawdown:
         )
 
         return float(conditional_value_at_risk)
+
+class DownsideRisk:
+    """
+    Class for computing semi variance and downside standard deviation of strategy,
+    given its returns.
+
+    Examples:
+        >>> from quant_research_toolbox.risk import DownsideRisk
+        >>> data = pd.Series([.001, .00023, -.23, .00012, -.0012])
+        >>> DownsideRisk.semi_variance(data)
+        0.03386704090000001
+        >>> DownsideRisk.downside_standard_deviation(data)
+        0.18403000000000003
+    """
+
+    @staticmethod
+    def semi_variance(returns:pd.Series,
+                     threshold:Optional[float]=None) -> float:
+        """
+        Compute the semi-variance of a series of returns, i.e. the variance of the returns
+        under a given threshold of returns.
+
+        Args:
+            returns (pd.Series): Series of returns.
+            threshold (Optional[float]): The target or average under which returns are considered.
+                                         Defaults to `None`, i.e. the average of the returns.
+
+        Returns:
+            float: Semi-variance of the returns series.
+        """
+
+        if threshold is None:
+            threshold = returns.mean()
+        
+        returns = returns[returns < threshold]
+
+        if returns.empty:
+            return 0.0
+
+        return float(((returns-threshold)**2).mean())
+
+    @staticmethod
+    def downside_standard_deviation(returns:pd.Series,
+                                   threshold:Optional[float]=None) -> float:
+        """
+        Compute the downside standard deviation of a series of returns, corresponding the squared root
+        of the semi-variance of returns, for a given threshold.
+
+        Args:
+            returns (pd.Series): Series of returns.
+            threshold (Optional[float]): The target or average under which returns are considered.
+                                         Defaults to `None`, i.e. the average of the returns.
+
+        Returns:
+            float: Downside standard deviation of the returns series.
+        """
+        return float(np.sqrt(DownsideRisk.semi_variance(returns, 
+                                                        threshold)))
+        
