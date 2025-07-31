@@ -324,8 +324,37 @@ class Drawdown:
         return ui
 
     @staticmethod
+    def drawdown_at_risk(cumulative_returns:pd.Series,
+                        confidence_level:Optional[float]=.95
+                        ) -> float:
+        """
+        Compute the historical drawdown at risk given a level of confidence.
+
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+            confidence_level (Optional[float]): Confidence level of the DaR.
+
+        Returns:
+            float: DaR, i.e. the VaR of the drawdown series.
+        """
+
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        daily_drawdowns = daily_drawdowns[daily_drawdowns < 0]
+
+        if daily_drawdowns.empty:
+            return 0.0
+
+        if (confidence_level > 1) or (confidence_level < 0):
+            raise ValueError(
+                f"Invalid value for the `confidence_level`:{confidence_level}. This variable must be between 0 and 1."
+            )
+
+        return float(np.percentile(daily_drawdowns, 
+                                   100*(1-confidence_level)))
+
+    @staticmethod
     def conditional_drawdown_at_risk(cumulative_returns:pd.Series,
-                                    confidence_level:Optional[float]=.99
+                                    confidence_level:Optional[float]=.95
                                     ) -> float:
         """
         Compute the conditional drawdown at risk for a given confidence level.
