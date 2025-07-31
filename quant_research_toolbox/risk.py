@@ -191,7 +191,9 @@ class Drawdown:
         cumulative_returns: pd.Series, duration_stat: Optional[str] = "max"
     ) -> float:
         """
-        Return
+        Returns the drawdown duration which is the duration from peak to peak of NAV.
+        This duration includes all recovered drawdown periods, but does not include
+        in-progress drawdown periods, at the end of the series for example.
 
         Args:
             cumulative_returns (pd.Series): Series of cumulative returns.
@@ -221,9 +223,6 @@ class Drawdown:
             elif current_drawdown_duration > 0:
                 drawdown_durations.append(current_drawdown_duration)
                 current_drawdown_duration = 0
-
-        if current_drawdown_duration > 0:
-            drawdown_durations.append(current_drawdown_duration)
 
         if drawdown_durations:
             return float(DURATION_STATS[duration_stat](drawdown_durations))
@@ -258,21 +257,49 @@ class Drawdown:
 
         return count_drawdowns
 
-    # @staticmethod
-    # def time_under_water(cumulative_returns:pd.Series,
-    #                     duration_stat: Optional[str] = "max") -> int:
-    #     """
-    #     Return the time under water with a given statistic.
-    #     """
+    @staticmethod
+    def time_under_water(cumulative_returns:pd.Series,
+                         duration_stat: Optional[str] = "max") -> int:
+        """
+        Return the time under water with a given statistic : this duration corresponds
+        to all drawdown durations recovered and in-progress.
 
-    #     DURATION_STATS = {"max": np.max, "mean": np.mean, "median": np.median}
+        Args:
+            cumulative_returns (pd.Series): Series of cumulative returns.
+            duration_stat (Optional[str]): Statistic to compute for drawdown duration.
+                                           One of `max`, `mean`, `median`. Defaults to `max`.
 
-    #     daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
-    #     in_drawdowns = daily_drawdowns[daily_drawdowns < 0]
+        Returns:
+            float: Given statistic of duration of time under water periods.
+        """
 
-        
+        DURATION_STATS = {"max": np.max, "mean": np.mean, "median": np.median}
 
-    #     pass
+        if duration_stat not in DURATION_STATS:
+            raise ValueError(
+                f"Invalid value for `duration_stat` : '{duration_stat}'. Must be one of {list(DURATION_STATS)}."
+            )
+
+        daily_drawdowns = Drawdown.daily_drawdown(cumulative_returns)
+        in_drawdowns = daily_drawdowns < 0
+
+        current_drawdown_duration = 0
+        drawdown_durations = []
+
+        for daily_drawdown, in_drawdown in zip(daily_drawdowns, in_drawdowns):
+            if in_drawdown:
+                current_drawdown_duration += 1
+            elif current_drawdown_duration > 0:
+                drawdown_durations.append(current_drawdown_duration)
+                current_drawdown_duration = 0
+
+        # Here relies the difference with drawdown_duration : we also add in-progress drawdowns
+        if current_drawdown_duration > 0:
+            drawdown_durations.append(current_drawdown_duration)
+
+        if drawdown_durations:
+            return float(DURATION_STATS[duration_stat](drawdown_durations))
+        return 0.0
 
     @staticmethod
     def ulcer_index(cumulative_returns:pd.Series) -> float:
@@ -330,7 +357,3 @@ class Drawdown:
         )
 
         return float(conditional_value_at_risk)
-        
-        
-
-        
