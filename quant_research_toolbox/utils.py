@@ -1,3 +1,7 @@
+"""
+Functions and classes for auxiliary tasks.
+"""
+
 import pandas as pd
 import yfinance as yf
 

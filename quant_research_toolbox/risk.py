@@ -8,7 +8,6 @@ from scipy.stats import norm
 from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
-
 @dataclass
 class ValueAtRisk:
     """
