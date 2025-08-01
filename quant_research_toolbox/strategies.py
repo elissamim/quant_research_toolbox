@@ -52,7 +52,7 @@ class Momentum:
 
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
 
-        df_signals[f"cumulative_returns"] = (
+        df_signals["cumulative_returns"] = (
             compute_cumulative_returns(df_signals,
                                         col_price,
                                         "orders")
@@ -116,7 +116,7 @@ class Momentum:
                 count_consecutive_days = 0
                 signal = 0
 
-        df_signals[f"cumulative_returns"] = (
+        df_signals["cumulative_returns"] = (
             compute_cumulative_returns(df_signals,
                                     col_price,
                                     "orders")
@@ -181,7 +181,7 @@ class MeanReversion:
 
         df_signals["orders"] = df_signals["signal"].diff().fillna(0)
 
-        df_signals[f"cumulative_returns"] = (
+        df_signals["cumulative_returns"] = (
             compute_cumulative_returns(df_signals,
                                         col_price,
                                         "orders")
