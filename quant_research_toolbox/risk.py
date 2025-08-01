@@ -455,9 +455,10 @@ class TailRisk:
         Return the skew of returns.
 
         Args:
+            returns (pd.Series): Series of returns.
 
         Returns:
-        
+            float: Skew of the series of returns.
         """
         return returns.skew()
 
@@ -470,7 +471,7 @@ class TailRisk:
             returns (pd.Series): Series of returns.
 
         Returns:
-            float: Excess kurtosis.
+            float: Excess kurtosis of the series of returns.
         """
         return returns.kurt()
         
