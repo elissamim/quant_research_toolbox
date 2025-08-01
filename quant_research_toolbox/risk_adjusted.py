@@ -1,3 +1,7 @@
+"""
+Functions and classes for risk adjusted metrics.
+"""
+
 import pandas as pd
 import numpy as np
 from typing import Optional
