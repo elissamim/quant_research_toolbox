@@ -8,6 +8,7 @@ from scipy.stats import norm
 from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
+
 @dataclass
 class ValueAtRisk:
     """
@@ -231,7 +232,7 @@ class Drawdown:
         return 0.0
 
     @staticmethod
-    def count_drawdown_periods(cumulative_returns:pd.Series) -> int:
+    def count_drawdown_periods(cumulative_returns: pd.Series) -> int:
         """
         Count the number of drawdown periods in cumulative returns series.
 
@@ -251,17 +252,17 @@ class Drawdown:
         for in_drawdown in in_drawdowns:
             if in_drawdown:
                 if not previous_drawdown:
-                    count_drawdowns +=1
+                    count_drawdowns += 1
                     previous_drawdown = True
             elif previous_drawdown:
                 previous_drawdown = False
 
-
         return count_drawdowns
 
     @staticmethod
-    def time_under_water(cumulative_returns:pd.Series,
-                         duration_stat: Optional[str] = "max") -> int:
+    def time_under_water(
+        cumulative_returns: pd.Series, duration_stat: Optional[str] = "max"
+    ) -> int:
         """
         Return the time under water with a given statistic : this duration corresponds
         to all drawdown durations recovered and in-progress.
@@ -304,7 +305,7 @@ class Drawdown:
         return 0.0
 
     @staticmethod
-    def ulcer_index(cumulative_returns:pd.Series) -> float:
+    def ulcer_index(cumulative_returns: pd.Series) -> float:
         """
         Return the Ulcer-Index of a series of cumulative returns.
 
@@ -321,14 +322,14 @@ class Drawdown:
         if is_negative.empty:
             return 0.0
 
-        ui = float(np.sqrt((is_negative ** 2).mean()))
+        ui = float(np.sqrt((is_negative**2).mean()))
 
         return ui
 
     @staticmethod
-    def drawdown_at_risk(cumulative_returns:pd.Series,
-                        confidence_level:Optional[float]=.95
-                        ) -> float:
+    def drawdown_at_risk(
+        cumulative_returns: pd.Series, confidence_level: Optional[float] = 0.95
+    ) -> float:
         """
         Compute the historical drawdown at risk given a level of confidence.
 
@@ -351,13 +352,12 @@ class Drawdown:
                 f"Invalid value for the `confidence_level`:{confidence_level}. This variable must be between 0 and 1."
             )
 
-        return float(np.percentile(daily_drawdowns, 
-                                   100*(1-confidence_level)))
+        return float(np.percentile(daily_drawdowns, 100 * (1 - confidence_level)))
 
     @staticmethod
-    def conditional_drawdown_at_risk(cumulative_returns:pd.Series,
-                                    confidence_level:Optional[float]=.95
-                                    ) -> float:
+    def conditional_drawdown_at_risk(
+        cumulative_returns: pd.Series, confidence_level: Optional[float] = 0.95
+    ) -> float:
         """
         Compute the conditional drawdown at risk for a given confidence level.
         It is the CVaR for the drawdown series.
@@ -380,14 +380,14 @@ class Drawdown:
             raise ValueError(
                 f"Invalid value for the `confidence_level`:{confidence_level}. This variable must be between 0 and 1."
             )
-        
-        value_at_risk = np.percentile(daily_drawdowns, 
-                                      100*(1-confidence_level))
-        conditional_value_at_risk = (
-            daily_drawdowns[daily_drawdowns <= value_at_risk].mean()
-        )
+
+        value_at_risk = np.percentile(daily_drawdowns, 100 * (1 - confidence_level))
+        conditional_value_at_risk = daily_drawdowns[
+            daily_drawdowns <= value_at_risk
+        ].mean()
 
         return float(conditional_value_at_risk)
+
 
 class DownsideRisk:
     """
@@ -404,8 +404,7 @@ class DownsideRisk:
     """
 
     @staticmethod
-    def semi_variance(returns:pd.Series,
-                     threshold:Optional[float]=None) -> float:
+    def semi_variance(returns: pd.Series, threshold: Optional[float] = None) -> float:
         """
         Compute the semi-variance of a series of returns, i.e. the variance of the returns
         under a given threshold of returns.
@@ -421,17 +420,18 @@ class DownsideRisk:
 
         if threshold is None:
             threshold = returns.mean()
-        
+
         returns = returns[returns < threshold]
 
         if returns.empty:
             return 0.0
 
-        return float(((returns-threshold)**2).mean())
+        return float(((returns - threshold) ** 2).mean())
 
     @staticmethod
-    def downside_standard_deviation(returns:pd.Series,
-                                   threshold:Optional[float]=None) -> float:
+    def downside_standard_deviation(
+        returns: pd.Series, threshold: Optional[float] = None
+    ) -> float:
         """
         Compute the downside standard deviation of a series of returns, corresponding the squared root
         of the semi-variance of returns, for a given threshold.
@@ -444,8 +444,8 @@ class DownsideRisk:
         Returns:
             float: Downside standard deviation of the returns series.
         """
-        return float(np.sqrt(DownsideRisk.semi_variance(returns, 
-                                                        threshold)))
+        return float(np.sqrt(DownsideRisk.semi_variance(returns, threshold)))
+
 
 class TailRisk:
     """
@@ -453,7 +453,7 @@ class TailRisk:
     """
 
     @staticmethod
-    def skewness(returns:pd.Series) -> float:
+    def skewness(returns: pd.Series) -> float:
         """
         Return the skew of returns.
 
@@ -466,7 +466,7 @@ class TailRisk:
         return returns.skew()
 
     @staticmethod
-    def excess_kurtosis(returns:pd.Series) -> float:
+    def excess_kurtosis(returns: pd.Series) -> float:
         """
         Return the excess kurtosis of returns.
 
@@ -477,4 +477,3 @@ class TailRisk:
             float: Excess kurtosis of the series of returns.
         """
         return returns.kurt()
-        
