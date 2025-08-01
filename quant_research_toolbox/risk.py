@@ -388,7 +388,7 @@ class Drawdown:
 
 class DownsideRisk:
     """
-    Class for computing semi variance and downside standard deviation of strategy,
+    A class for computing semi variance and downside standard deviation of strategy,
     given its returns.
 
     Examples:
@@ -443,4 +443,34 @@ class DownsideRisk:
         """
         return float(np.sqrt(DownsideRisk.semi_variance(returns, 
                                                         threshold)))
+
+class TailRisk:
+    """
+    A class for tail risk metrics.
+    """
+
+    @staticmethod
+    def skewness(returns:pd.Series) -> float:
+        """
+        Return the skew of returns.
+
+        Args:
+
+        Returns:
+        
+        """
+        return returns.skew()
+
+    @staticmethod
+    def excess_kurtosis(returns:pd.Series) -> float:
+        """
+        Return the excess kurtosis of returns.
+
+        Args:
+            returns (pd.Series): Series of returns.
+
+        Returns:
+            float: Excess kurtosis.
+        """
+        return returns.kurt()
         
