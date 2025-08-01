@@ -27,11 +27,11 @@ def load_ticker_data(ticker_name: str, start_date: str, end_date: str) -> pd.Dat
 
     return df_ticker
 
-def compute_cumulative_returns(
+def compute_returns(
     df_signals: pd.DataFrame, col_prices: str, col_orders: str
 ) -> pd.Series:
     """
-    Compute cumulative returns from a strategy given prices and orders.
+    Compute returns from a strategy given prices and orders.
 
     Args:
         df_signals (pd.DataFrame): DataFrame containing orders and prices.
@@ -39,7 +39,7 @@ def compute_cumulative_returns(
         col_orders (str): Name of the column containing the orders.
 
     Returns:
-        pd.DataFrame: DataFrame with a column containing the strategy cumulative returns.
+        pd.DataFrame: DataFrame with a column containing the strategy returns.
     """
 
     returns = pd.Series(0.0, index=df_signals.index)
@@ -66,5 +66,11 @@ def compute_cumulative_returns(
                 df_signals.loc[buy_date, col_prices] - 1
             )
             break
+
+    return returns
+
+def compute_cumulative_returns(returns:pd.Series)->pd.Series:
+    """
+    """
 
     return (1+returns).cumprod()-1
