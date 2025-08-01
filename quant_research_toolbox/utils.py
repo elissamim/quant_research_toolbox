@@ -71,6 +71,13 @@ def compute_returns(
 
 def compute_cumulative_returns(returns:pd.Series)->pd.Series:
     """
+    Compute compounded returns from returns.
+
+    Args:
+        returns (pd.Series): Series of returns.
+
+    Returns:
+        pd.Series: Cumulative returns.
     """
 
     return (1+returns).cumprod()-1
