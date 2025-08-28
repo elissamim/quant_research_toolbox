@@ -27,7 +27,7 @@ tools = [
 ]
 
 risk_graph = StateGraph(RiskState)
-risk_graph.add_node("tools", tools)
+risk_graph.add_node("tools", ToolNode(tools))
 risk_graph.add_edge(START, "tools")
 risk_graph.add_edge("tools", END)
 risk_compiled_graph = risk_graph.compile()
