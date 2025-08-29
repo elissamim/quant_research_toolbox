@@ -1,8 +1,6 @@
 # import os
 from langgraph.graph import StateGraph, START, END
 
-# from langgraph.graph.message import add_messages
-# from langgraph.prebuilt import ToolNode
 from langchain_openai import ChatOpenAI
 from typing import TypedDict, Any, Dict, Literal
 import json
@@ -10,9 +8,7 @@ import json
 from utils import load_ticker_data
 from strategies import Momentum, MeanReversion
 
-# from risk import ValueAtRisk, Drawdown, DownsideRisk, TailRisk
 from risk_adjusted import sharpe_ratio, sortino_ratio, omega_ratio
-
 
 # ------------- State -------------
 class StrategyState(TypedDict):
