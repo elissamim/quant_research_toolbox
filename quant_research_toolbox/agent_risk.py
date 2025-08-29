@@ -35,19 +35,8 @@ def tool_risk_adjusted(state:RiskState):
 # Add llm here
 llm = ChatOpenAI(temperature=0)
 
-tools = [
-    Momentum,
-    MeanReversion,
-    ValueAtRisk,
-    Drawdown, 
-    TailRisk,
-    sharpe_ratio,
-    sortino_ratio,
-    omega_ratio
-]
-
 risk_graph = StateGraph(RiskState)
-risk_graph.add_node("tools", ToolNode(tools))
-risk_graph.add_edge(START, "tools")
-risk_graph.add_edge("tools", END)
+risk_graph.add_node("tool_risk_adjusted", tool_risk_adjusted)
+risk_graph.add_edge(START, "tool_risk_adjusted")
+risk_graph.add_edge("tool_risk_adjusted", END)
 risk_compiled_graph = risk_graph.compile()
