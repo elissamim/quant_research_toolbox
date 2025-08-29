@@ -3,3 +3,4 @@ ruff
 pytest
 langgraph
 langfuse
+huggingface_hub
