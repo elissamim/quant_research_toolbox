@@ -1,14 +1,16 @@
-# import os
 from langgraph.graph import StateGraph, START, END
 
-from langchain_openai import ChatOpenAI
+from transformers import pipeline
+from langchain_community.llms import HuggingFacePipeline
 from typing import TypedDict, Any, Dict, Literal
 import json
+import re
 
 from utils import load_ticker_data
 from strategies import Momentum, MeanReversion
 
 from risk_adjusted import sharpe_ratio, sortino_ratio, omega_ratio
+from risk import TailRisk, Drawdown, DownsideRisk
 
 # ------------- State -------------
 class StrategyState(TypedDict):
@@ -24,9 +26,19 @@ class StrategyState(TypedDict):
 
 
 # ------------- Nodes -------------
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
+# We first define the LLM to use for structured generation from the query
+pipe = pipeline(
+    "text-generation",
+    model="mistralai/Mistral-7B-Instruct-v0.1",
+    device=0,
+    max_new_tokens=512,
+    temperature=0.1,
+)
 
+llm = HuggingFacePipeline(pipeline=pipe)
+
+# We then define the different tools
 def parse_query(state: StrategyState) -> StrategyState:
     """
     Use the LLM to parse the query and identify the ticker of interest,
@@ -45,7 +57,12 @@ def parse_query(state: StrategyState) -> StrategyState:
     Return JSON only (structured generation), with keys ticker, start_date, end_date, strategy
     """
 
-    structured = llm.invoke(prompt).content
+    response = llm.invoke(prompt)
+    match = re.search(r"\{.*\}", response, re.DOTALL)
+    if not match:
+        raise ValueError(f"LLM did not return valid JSON: {response}")
+
+    structured = match.group(0)
     parsed = json.loads(structured)
 
     return {
@@ -102,6 +119,10 @@ def compute_performance(state: StrategyState) -> StrategyState:
         "sharpe_ratio": sharpe_ratio(df_returns),
         "sortino_ratio": sortino_ratio(df_returns),
         "omega_ratio": omega_ratio(df_returns),
+        "skewness":TailRisk.skewness(df_returns),
+        "excess_kurtosis":TailRisk.excess_kurtosis(df_returns),
+        "semi_variance":DownsideRisk.semi_variance(df_returns),
+        "downside_standard_deviation":DownsideRisk.downside_standard_deviation(df_returns)
     }
 
     return {"performance": performance}
@@ -125,6 +146,11 @@ compiled_graph = graph.compile()
 
 # ------------- Example run -------------
 if __name__ == "__main__":
-    query = "What is the performance of a SMA crossover strategy applied on AAPL from 1st december 2021 to 29th january 2024 ?"
-    result = compiled_graph.invoke({"query": query})
-    print(result["performance"])
+    
+    query_1 = "What is the performance of a SMA crossover strategy applied on AAPL from 1st december 2021 to 29th january 2024 ?"
+    result_1 = compiled_graph.invoke({"query": query_1})
+    print({k:v for k,v in result_1.items() if k not in {"query", "data", "returns", "cumulative_returns"}})
+    
+    query_2 = "What is the performance of a mean reversion strategy applied on TSLA from 1st december 2021 to 29th january 2023 ?"
+    result_2 = compiled_graph.invoke({"query": query_2})
+    print({k:v for k,v in result_2.items() if k not in {"query", "data", "returns", "cumulative_returns"}})

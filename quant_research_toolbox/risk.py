@@ -463,7 +463,7 @@ class TailRisk:
         Returns:
             float: Skew of the series of returns.
         """
-        return returns.skew()
+        return float(returns.skew())
 
     @staticmethod
     def excess_kurtosis(returns: pd.Series) -> float:
@@ -476,4 +476,4 @@ class TailRisk:
         Returns:
             float: Excess kurtosis of the series of returns.
         """
-        return returns.kurt()
+        return float(returns.kurt())

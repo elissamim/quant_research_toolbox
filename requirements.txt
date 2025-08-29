@@ -4,3 +4,6 @@ pytest
 langgraph
 langfuse
 huggingface_hub
+langchain-community
+transformers
+torch
