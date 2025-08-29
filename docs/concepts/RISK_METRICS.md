@@ -6,6 +6,10 @@
 
 ## Downside risk metrics
 
+Semi variance measures the potential downside risk of an investment. It is calculated by measuring the dispersion of all observations that fall below the mean or target value.
+
+$\mathbb{E}(X)$
+
 ## Tail risk metrics
 
 ### Skewness
