@@ -91,7 +91,7 @@ def resolve_ticker(state: StrategyState) -> StrategyState:
     company_name = state["company_name"]
     search_result = search.run(f"{company_name} stock ticker site:stockanalysis.com")
     match_result = re.match(r"\b[A-Z]{1,5}\b", search_result)
-    ticker = match.group(0) if match_result else None
+    ticker = match_result.group(0) if match_result else None
 
     if not ticker:
         raise ValueError(f"Could not resolve ticker for {company_name}")
