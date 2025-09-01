@@ -2,6 +2,7 @@ from langgraph.graph import StateGraph, START, END
 
 from transformers import pipeline
 from langchain_community.llms import HuggingFacePipeline
+from langchain_community.tools import DuckDuckGoSearchRun
 from typing import TypedDict, Any, Dict, Literal
 import json
 import re
@@ -16,6 +17,7 @@ from risk import TailRisk, Drawdown, DownsideRisk
 class StrategyState(TypedDict):
     query: str
     ticker: str
+    company_name: str
     start_date: str
     end_date: str
     strategy: Literal["sma_crossover", "naive_momentum", "sma_mean_reversion"]
@@ -38,6 +40,8 @@ pipe = pipeline(
 
 llm = HuggingFacePipeline(pipeline=pipe)
 
+search = DuckDuckGoSearchRun()
+
 # We then define the different tools
 def parse_query(state: StrategyState) -> StrategyState:
     """
@@ -48,13 +52,14 @@ def parse_query(state: StrategyState) -> StrategyState:
 
     prompt = f"""
     Extract the following field from the user query:
-    - ticker (stock symbol, e.g. "AAPL")
+    - ticker (stock symbol, e.g. "AAPL", if stock symbol given in the query, else "")
+    - company_name (if a company name instead of a ticker)
     - start_date ("YYYY-MM-DD")
     - end_date ("YYYY-MM-DD")
     - strategy ("sma_crossover", "naive_momentum", "sma_mean_reversion")
 
     User query : {state["query"]}
-    Return JSON only (structured generation), with keys ticker, start_date, end_date, strategy
+    Return JSON only (structured generation), with keys ticker, company_name, start_date, end_date, strategy
     """
 
     response = llm.invoke(prompt)
@@ -67,6 +72,7 @@ def parse_query(state: StrategyState) -> StrategyState:
 
     return {
         "ticker": parsed["ticker"],
+        "company_name": parsed["company_name"],
         "start_date": parsed["start_date"],
         "end_date": parsed["end_date"],
         "strategy": parsed["strategy"],
@@ -79,9 +85,19 @@ def has_ticker(state: StrategyState) -> bool:
 
 def resolve_ticker(state: StrategyState) -> StrategyState:
     """
-    Find the ticker of the stock when ticker not found by the LLM from the query.
+    Find ticker of the company from the internet.
     """
-    pass
+
+    company_name = state["company_name"]
+    search_result = search.run(f"{company_name} stock ticker site:stockanalysis.com")
+    match_result = re.match(r"\b[A-Z]{1,5}\b", search_result)
+    ticker = match.group(0) if match_result else None
+
+    if not ticker:
+        raise ValueError(f"Could not resolve ticker for {company_name}")
+
+    return {"ticker":ticker}
+    
 
 def load_data(state: StrategyState) -> StrategyState:
     """
@@ -93,7 +109,6 @@ def load_data(state: StrategyState) -> StrategyState:
     )
 
     return {"data": df_ticker}
-
 
 def apply_strategy(state: StrategyState) -> StrategyState:
     """
@@ -116,7 +131,6 @@ def apply_strategy(state: StrategyState) -> StrategyState:
         "returns": df_strategy["returns"],
         "cumulative_returns": df_strategy["cumulative_returns"],
     }
-
 
 def compute_performance(state: StrategyState) -> StrategyState:
     """
