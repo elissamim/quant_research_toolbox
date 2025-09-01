@@ -72,6 +72,16 @@ def parse_query(state: StrategyState) -> StrategyState:
         "strategy": parsed["strategy"],
     }
 
+def has_ticker(state: StrategyState) -> bool:
+    """Determine the next node given if the LLM has found or not the ticker from the query."""
+    
+    return state.get("ticker") is not None and state["ticker"]!=""
+
+def resolve_ticker(state: StrategyState) -> StrategyState:
+    """
+    Find the ticker of the stock when ticker not found by the LLM from the query.
+    """
+    pass
 
 def load_data(state: StrategyState) -> StrategyState:
     """
@@ -127,17 +137,22 @@ def compute_performance(state: StrategyState) -> StrategyState:
 
     return {"performance": performance}
 
-
 # ------------- Graph -------------
 graph = StateGraph(StrategyState)
 
 graph.add_node("parse_query", parse_query)
+graph.add_node("resolve_ticker", resolve_ticker)
 graph.add_node("load_data", load_data)
 graph.add_node("apply_strategy", apply_strategy)
 graph.add_node("compute_performance", compute_performance)
 
 graph.add_edge(START, "parse_query")
-graph.add_edge("parse_query", "load_data")
+graph.add_conditional_edges(
+    "parse_query",
+    has_ticker,
+    {True:"load_data", False:"resolve_ticker"}
+)
+graph.add_edge("resolve_ticker", "load_data")
 graph.add_edge("load_data", "apply_strategy")
 graph.add_edge("apply_strategy", "compute_performance")
 graph.add_edge("compute_performance", END)
